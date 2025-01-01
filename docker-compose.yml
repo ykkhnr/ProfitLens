@@ -1,0 +1,67 @@
+services:
+  nginx:
+    image: nginx:latest
+    container_name: profitlens_nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./services/php/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./services/php/app:/var/www/html
+    depends_on:
+      - php
+
+  php:
+    build:
+      context: ./services/php
+    container_name: profitlens_php
+    volumes:
+      - ./services/php/app:/var/www/html
+    environment:
+      - PHP_OPCACHE_ENABLE=1
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mysql:8.0
+    container_name: profitlens_db
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: profitlens
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./services/mysql/my.cnf:/etc/mysql/my.cnf
+    ports:
+      - "3306:3306"
+
+  python:
+    build:
+      context: ./services/python
+    container_name: profitlens_python
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./services/python/app:/usr/src/app
+    working_dir: /usr/src/app
+    environment:
+      - PYTHONPATH=/usr/src/app
+    command: ["python", "main.py"]
+    depends_on:
+      - mysql
+
+  go:
+    build:
+      context: ./services/go
+    container_name: profitlens_go
+    ports:
+      - "8002:8080" 
+    volumes:
+      - ./services/go/app:/usr/src/app
+    working_dir: /usr/src/app
+    command: ["app"]
+    depends_on:
+      - mysql
+
+volumes:
+  db_data:
