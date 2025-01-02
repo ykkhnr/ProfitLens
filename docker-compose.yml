@@ -54,7 +54,7 @@ services:
     working_dir: /usr/src/app
     environment:
       - PYTHONPATH=/usr/src/app
-    command: ["python", "main.py"]
+    command: ["python", "app.py"]
     depends_on:
       - mysql
     networks:
